@@ -287,7 +287,16 @@
                 <!-- QR CODE SECTION -->
                 <div id="qrCodeSection" class="hidden mt-3 text-center bg-white p-2 rounded">
                     <p class="text-black text-[10px] font-bold mb-1">Scan to Pay</p>
-                    <img id="dynamicQR" src="" class="w-32 h-32 mx-auto object-contain bg-white" alt="QR Code">
+                    
+                    <!-- UPDATED IMAGE TAG WITH ERROR HANDLING -->
+                    <div class="relative w-32 h-32 mx-auto">
+                        <img id="dynamicQR" 
+                             src="scanner.jpeg" 
+                             class="w-full h-full object-contain bg-white" 
+                             alt="QR Code Not Found"
+                             onerror="this.onerror=null; this.src='https://placehold.co/150x150?text=QR+Missing'; alert('Error: scanner.jpeg not found in the same folder as index.html');">
+                    </div>
+                     
                     <div class="mt-2 space-y-2">
                          <input type="number" id="walletUtrInput" class="w-full bg-gray-100 border border-gray-300 text-black p-1 rounded text-[10px] font-mono" placeholder="Enter 12 Digit UTR / Ref No">
                         <button onclick="submitWalletRequest()" class="w-full bg-blue-600 text-white py-1.5 rounded text-[10px] font-bold">SUBMIT UTR</button>
@@ -338,7 +347,6 @@
                 
                 <input id="playerName" class="compact-input py-1.5" placeholder="Your Name" required>
                 <div class="grid grid-cols-2 gap-2">
-                    <!-- CHANGED FF IGN TO FF NAME -->
                     <input id="playerIGN" class="compact-input py-1.5" placeholder="FF NAME" required>
                     <input id="playerUID" class="compact-input py-1.5" placeholder="FF UID" type="number" required>
                 </div>
@@ -491,7 +499,7 @@
         let walletRequests = JSON.parse(localStorage.getItem('walletRequests')) || []; 
 
         function updateBalanceDisplay() {
-            ['navBalance', 'walletModalBalance'].forEach(id => {
+            ['navBalance', 'walletModalBalance', 'formWalletBal'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.innerText = userBalance;
             });
@@ -514,8 +522,8 @@
         function showQR() {
             const amt = document.getElementById('addAmountInput').value;
             if(!amt || amt <= 0) return alert("Enter Amount");
-            const link = `upi://pay?pa=${UPI_ID}&pn=SunilEsports&am=${amt}&cu=INR`;
-            document.getElementById('dynamicQR').src = "MY PHONE PE SCANNER  YES BANK KA .jpeg"; 
+            // Set static image since you renamed it
+            document.getElementById('dynamicQR').src = "scanner.jpeg"; 
             document.getElementById('qrCodeSection').classList.remove('hidden');
         }
 
@@ -632,6 +640,7 @@
             document.getElementById('joinMatchId').value = matchId;
             document.getElementById('modalGameName').innerText = m.title;
             document.getElementById('modalFee').innerText = m.fee;
+            // Scroll to top of modal for compact view
             document.querySelector('#regModal .modal-box').scrollTop = 0;
             document.getElementById('regModal').classList.remove('hidden');
         }
