@@ -287,16 +287,13 @@
                 <!-- QR CODE SECTION -->
                 <div id="qrCodeSection" class="hidden mt-3 text-center bg-white p-2 rounded">
                     <p class="text-black text-[10px] font-bold mb-1">Scan to Pay</p>
-                    
-                    <!-- UPDATED IMAGE TAG WITH ERROR HANDLING -->
                     <div class="relative w-32 h-32 mx-auto">
                         <img id="dynamicQR" 
                              src="scanner.jpeg" 
                              class="w-full h-full object-contain bg-white" 
-                             alt="QR Code Not Found"
-                             onerror="this.onerror=null; this.src='https://placehold.co/150x150?text=QR+Missing'; alert('Error: scanner.jpeg not found in the same folder as index.html');">
+                             alt="QR Code"
+                             onerror="this.onerror=null; this.src='https://placehold.co/150x150?text=Scan+QR';">
                     </div>
-                     
                     <div class="mt-2 space-y-2">
                          <input type="number" id="walletUtrInput" class="w-full bg-gray-100 border border-gray-300 text-black p-1 rounded text-[10px] font-mono" placeholder="Enter 12 Digit UTR / Ref No">
                         <button onclick="submitWalletRequest()" class="w-full bg-blue-600 text-white py-1.5 rounded text-[10px] font-bold">SUBMIT UTR</button>
@@ -415,6 +412,7 @@
                 <button onclick="switchAdminTab('matches')" id="tab-matches" class="flex-1 py-2 text-xs font-bold rounded bg-cyan-600 text-white">MATCHES</button>
                 <button onclick="switchAdminTab('requests')" id="tab-requests" class="flex-1 py-2 text-xs font-bold rounded text-gray-400 hover:bg-gray-700">MATCH REQ <span id="reqCount" class="bg-red-600 text-white px-1.5 rounded-full ml-1">0</span></button>
                 <button onclick="switchAdminTab('wallet')" id="tab-wallet" class="flex-1 py-2 text-xs font-bold rounded text-gray-400 hover:bg-gray-700">WALLET REQ <span id="walletReqCount" class="bg-green-600 text-white px-1.5 rounded-full ml-1">0</span></button>
+                <button onclick="switchAdminTab('manage-wallet')" id="tab-manage-wallet" class="flex-1 py-2 text-xs font-bold rounded text-gray-400 hover:bg-gray-700">MANAGE WALLET</button>
             </div>
 
             <!-- TAB 1: MATCHES -->
@@ -456,6 +454,24 @@
                 <div id="walletRequestList" class="space-y-2 max-h-96 overflow-y-auto"></div>
             </div>
 
+            <!-- TAB 4: MANAGE WALLET -->
+             <div id="view-manage-wallet" class="hidden space-y-4">
+                <div class="bg-gray-800/80 p-4 rounded-xl border border-gray-700">
+                    <p class="text-xs text-gray-300 font-bold uppercase mb-3">MODIFY USER BALANCE</p>
+                    <div class="space-y-3">
+                         <div class="bg-black/40 p-2 rounded text-center border border-gray-600">
+                             <p class="text-[10px] text-gray-400">CURRENT USER BALANCE</p>
+                             <h2 class="text-2xl font-bold text-white">₹<span id="adminViewUserBal">0</span></h2>
+                         </div>
+                        <input id="manageWalletAmount" type="number" class="compact-input mb-2" placeholder="Amount to Add/Cut">
+                        <div class="flex gap-2">
+                            <button onclick="adminModifyWallet('add')" class="flex-1 bg-green-600 text-white font-bold py-2 rounded text-xs">ADD (+)</button>
+                            <button onclick="adminModifyWallet('cut')" class="flex-1 bg-red-600 text-white font-bold py-2 rounded text-xs">CUT (-)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Editor -->
             <div id="matchEditor" class="hidden absolute inset-0 bg-gray-900 p-5 z-20 rounded-xl">
                 <button onclick="document.getElementById('matchEditor').classList.add('hidden')" class="absolute top-3 right-3 text-gray-500"><i class="fa-solid fa-xmark"></i></button>
@@ -486,7 +502,6 @@
         </div>
     </div>
 
-    <!-- SCRIPTS -->
     <script>
         const scriptURL = "https://script.google.com/macros/s/AKfycbyRwEzvkMGvJ2SwiJ7JIs-OoX1rMBFCqZkUHFdm2oebVeJPAVcxPUZzRY-_mHH8nWWRkA/exec"; 
         const ADMIN_PIN = "8127205425SUNIL"; 
@@ -499,7 +514,7 @@
         let walletRequests = JSON.parse(localStorage.getItem('walletRequests')) || []; 
 
         function updateBalanceDisplay() {
-            ['navBalance', 'walletModalBalance', 'formWalletBal'].forEach(id => {
+            ['navBalance', 'walletModalBalance', 'formWalletBal', 'adminViewUserBal'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.innerText = userBalance;
             });
@@ -522,9 +537,15 @@
         function showQR() {
             const amt = document.getElementById('addAmountInput').value;
             if(!amt || amt <= 0) return alert("Enter Amount");
-            // Set static image since you renamed it
+            // Direct Scanner Logic
             document.getElementById('dynamicQR').src = "scanner.jpeg"; 
             document.getElementById('qrCodeSection').classList.remove('hidden');
+        }
+
+        function openDirectUPI() {
+             const amt = document.getElementById('addAmountInput').value || "0";
+             const link = `upi://pay?pa=${UPI_ID}&pn=SunilEsports&am=${amt}&cu=INR`;
+             window.open(link, '_blank');
         }
 
         function submitWalletRequest() {
@@ -656,20 +677,20 @@
 
             if(!age) { statusBox.innerText = "18+ Required."; statusBox.classList.remove('hidden'); return; }
             
-            // Check Wallet
+            // Check Wallet & Auto-Redirect
             if(userBalance < fee) {
                 // REDIRECT TO WALLET
                 closeForm();
                 openWallet();
                 Swal.fire({ 
                     title: 'Low Balance', 
-                    text: `You need ₹${fee} to join. Please add money.`, 
+                    text: `You need ₹${fee}. Redirecting to wallet...`, 
                     icon: 'warning', 
                     background: '#111', 
                     color: '#fff', 
                     confirmButtonColor: '#06b6d4',
-                    toast: true,
-                    position: 'top-end'
+                    timer: 1500,
+                    showConfirmButton: false
                 });
                 return;
             }
@@ -794,14 +815,33 @@
             document.getElementById('view-matches').classList.add('hidden');
             document.getElementById('view-requests').classList.add('hidden');
             document.getElementById('view-wallet').classList.add('hidden');
+            document.getElementById('view-manage-wallet').classList.add('hidden');
             document.getElementById(`tab-matches`).className = "flex-1 py-2 text-xs font-bold rounded text-gray-400 hover:bg-gray-700";
             document.getElementById(`tab-requests`).className = "flex-1 py-2 text-xs font-bold rounded text-gray-400 hover:bg-gray-700";
             document.getElementById(`tab-wallet`).className = "flex-1 py-2 text-xs font-bold rounded text-gray-400 hover:bg-gray-700";
+            document.getElementById(`tab-manage-wallet`).className = "flex-1 py-2 text-xs font-bold rounded text-gray-400 hover:bg-gray-700";
             
             document.getElementById(`view-${tab}`).classList.remove('hidden');
             document.getElementById(`tab-${tab}`).className = "flex-1 py-2 text-xs font-bold rounded bg-cyan-600 text-white";
             
             if(tab === 'wallet') renderWalletRequests();
+            if(tab === 'manage-wallet') updateBalanceDisplay();
+        }
+
+        function adminModifyWallet(action) {
+            const amt = parseFloat(document.getElementById('manageWalletAmount').value);
+            if(!amt) return;
+            if(action === 'add') {
+                userBalance += amt;
+                transactions.unshift({ desc: 'Admin Credit', amount: amt, type: 'credit', date: new Date().toLocaleDateString() });
+            } else {
+                userBalance -= amt;
+                transactions.unshift({ desc: 'Admin Debit', amount: amt, type: 'debit', date: new Date().toLocaleDateString() });
+            }
+            localStorage.setItem('myBalance', userBalance);
+            localStorage.setItem('myTxns', JSON.stringify(transactions));
+            updateBalanceDisplay();
+            alert("Done");
         }
 
         function renderAdminList() {
@@ -848,7 +888,9 @@
         }
 
         function updateWalletReqCount() {
-            document.getElementById('walletReqCount').innerText = walletRequests.filter(r => r.status === 'pending').length;
+            const count = walletRequests.filter(r => r.status === 'pending').length;
+            const el = document.getElementById('walletReqCount');
+            if(el) el.innerText = count;
         }
 
         function processWalletReq(id, status) {
