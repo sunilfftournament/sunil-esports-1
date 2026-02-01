@@ -1,139 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Sunil FF Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Sunil FF Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0b1220;
-      color: #fff;
-    }
-    .header {
-      padding: 15px;
-      background: #111827;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .header .user {
-      font-size: 14px;
-      color: #a5b4fc;
-    }
-    .container {
-      padding: 15px;
-    }
-    .card {
-      background: #111827;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 15px;
-    }
-    .menu {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-top: 15px;
-    }
-    .menu div {
-      background: #1f2933;
-      padding: 15px;
-      border-radius: 10px;
-      text-align: center;
-      cursor: pointer;
-    }
-    .menu div:hover {
-      background: #22c55e;
-      color: #000;
-    }
-    button {
-      padding: 10px;
-      width: 100%;
-      background: #ef4444;
-      border: none;
-      border-radius: 8px;
-      color: #fff;
-      font-weight: bold;
-      cursor: pointer;
-    }
-  </style>
+<style>
+body{margin:0;font-family:Arial;background:#0b1220;color:#fff}
+.header{padding:15px;background:#111827;display:flex;justify-content:space-between}
+.container{padding:15px}
+.card{background:#111827;padding:15px;border-radius:10px;margin-bottom:15px}
+.menu{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.menu div{background:#1f2933;padding:15px;border-radius:10px;text-align:center;cursor:pointer}
+.menu div:hover{background:#22c55e;color:#000}
+</style>
 </head>
 
 <body>
 
-  <!-- 🔝 TOP BAR -->
-  <div class="header">
-    <div>
-      <strong>Sunil FF Tournament</strong><br>
-      <span class="user" id="userPhone"></span>
-    </div>
-    <div>UID</div>
+<div class="header">
+  <div>
+    <b>Sunil FF Tournament</b><br>
+    <span id="userPhone"></span>
   </div>
+  <div onclick="logout()">Logout</div>
+</div>
 
-  <!-- 🔽 MAIN -->
-  <div class="container">
+<div class="container">
+  <div class="card">Wallet: ₹0</div>
+  <div class="card">No live match</div>
 
-    <!-- WALLET -->
-    <div class="card">
-      <h3>Wallet</h3>
-      <p>Balance: ₹0</p>
-    </div>
-
-    <!-- EVENT / BANNER -->
-    <div class="card">
-      <h3>Live Event</h3>
-      <p>No live match right now</p>
-    </div>
-
-    <!-- MENU -->
-    <div class="menu">
-      <div onclick="alert('Matches coming soon')">Matches</div>
-      <div onclick="alert('History coming soon')">History</div>
-      <div onclick="alert('Wallet coming soon')">Add Money</div>
-      <div onclick="alert('Withdraw coming soon')">Withdraw</div>
-      <div onclick="alert('Settings coming soon')">Settings</div>
-      <div onclick="logout()">Logout</div>
-    </div>
-
+  <div class="menu">
+    <div>Matches</div>
+    <div>History</div>
+    <div>Add Money</div>
+    <div>Withdraw</div>
+    <div>Settings</div>
+    <div onclick="logout()">Logout</div>
   </div>
+</div>
 
-  <!-- 🔐 LOGIN CHECK -->
-  <script>
-    const user = JSON.parse(localStorage.getItem("user"));
+<script>
+  const user = JSON.parse(localStorage.getItem("user"));
+  if(!user){
+    window.location.href="index.html";
+  } else {
+    document.getElementById("userPhone").innerText = user.phoneNumber;
+  }
 
-    if (!user) {
-      window.location.href = "index.html";
-    } else {
-      document.getElementById("userPhone").innerText =
-        "Logged in: " + user.phoneNumber;
-    }
-
-    function logout() {
-      localStorage.removeItem("user");
-      window.location.href = "index.html";
-    }
-  </script>
-<!-- FIREBASE CONNECT -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "PASTE_YAHAN",
-    authDomain: "PASTE_YAHAN",
-    projectId: "PASTE_YAHAN",
-    storageBucket: "PASTE_YAHAN",
-    messagingSenderId: "PASTE_YAHAN",
-    appId: "PASTE_YAHAN"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  window.db = db;
+  function logout(){
+    localStorage.removeItem("user");
+    window.location.href="index.html";
+  }
 </script>
 
 </body>
