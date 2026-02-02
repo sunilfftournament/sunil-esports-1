@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#0b1220;color:white;padding:20px">
+
+<h2>Join Match</h2>
+<input id="ffuid" placeholder="Free Fire UID"><br><br>
+<button onclick="join()">Confirm Join</button>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  updateDoc,
+  increment,
+  setDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDJie-ZFkaSjxAck7ohpegafgTyy6e-2AY",
+  authDomain: "sunilesports-ff-4f4ad.firebaseapp.com",
+  projectId: "sunilesports-ff-4f4ad"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const matchId = new URLSearchParams(location.search).get("match");
+
+window.join = async () => {
+  const user = auth.currentUser;
+  const ff = ffuid.value;
+
+  const uref = doc(db, "users", user.uid);
+  const usnap = await getDoc(uref);
+
+  if (usnap.data().balance < 50) return alert("Insufficient balance");
+
+  await updateDoc(uref, {
+    balance: increment(-50),
+    history: [...usnap.data().history, "Joined match"]
+  });
+
+  await setDoc(doc(db, "matchPlayers", matchId, "players", user.uid), {
+    uid: user.uid,
+    phone: usnap.data().phone,
+    ffuid: ff,
+    joinedAt: serverTimestamp()
+  });
+
+  alert("Joined successfully");
+  location.href = "dashboard.html";
+};
+</script>
+
+</body>
+</html>

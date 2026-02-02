@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#0b1220;color:white;padding:20px">
+
+<h2>Create Match</h2>
+
+<input id="title" placeholder="Match Title"><br><br>
+
+<select id="mode">
+  <option value="solo">Solo</option>
+  <option value="duo">Duo</option>
+  <option value="squad">Squad</option>
+</select><br><br>
+
+<input id="fee" placeholder="Entry Fee ₹"><br><br>
+<input id="p1" placeholder="1st Prize ₹"><br><br>
+<input id="p2" placeholder="2nd Prize ₹"><br><br>
+<input id="p3" placeholder="3rd Prize ₹"><br><br>
+<input id="time" placeholder="Time (8:30 PM)"><br><br>
+
+<button onclick="createMatch()">Create</button>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDJie-ZFkaSjxAck7ohpegafgTyy6e-2AY",
+  authDomain: "sunilesports-ff-4f4ad.firebaseapp.com",
+  projectId: "sunilesports-ff-4f4ad"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+onAuthStateChanged(auth, user => {
+  if (!user) location.href = "index.html";
+});
+
+window.createMatch = async () => {
+  await addDoc(collection(db, "matches"), {
+    title: title.value,
+    mode: mode.value,
+    entryFee: Number(fee.value),
+    prize1: Number(p1.value),
+    prize2: Number(p2.value),
+    prize3: Number(p3.value),
+    time: time.value,
+    maxPlayers: 48,
+    joinedCount: 0,
+    status: "upcoming",
+    createdAt: serverTimestamp()
+  });
+
+  alert("Match created");
+};
+</script>
+
+</body>
+</html>

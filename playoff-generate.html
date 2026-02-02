@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#0b1220;color:white;padding:20px">
+
+<h2>🔥 Generate Playoffs</h2>
+
+<label>Select League</label><br>
+<select id="league"></select><br><br>
+
+<button onclick="generate()">Generate Playoffs</button>
+<p id="msg"></p>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import {
+  getFirestore, collection, getDocs, addDoc, query, where, doc, getDoc
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDJie-ZFkaSjxAck7ohpegafgTyy6e-2AY",
+  authDomain: "sunilesports-ff-4f4ad.firebaseapp.com",
+  projectId: "sunilesports-ff-4f4ad"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* role check + leagues */
+onAuthStateChanged(auth, async user => {
+  if (!user) location.href="index.html";
+  const us = await getDoc(doc(db,"users",user.uid));
+  if (!["admin","staff"].includes(us.data().role)) {
+    alert("No access"); location.href="dashboard.html";
+  }
+  const ls = await getDocs(collection(db,"leagues"));
+  let opt="";
+  ls.forEach(d=>opt+=`<option value="${d.id}">${d.data().name}</option>`);
+  league.innerHTML = opt;
+});
+
+window.generate = async () => {
+  const leagueId = league.value;
+
+  const q = query(collection(db,"teams"), where("leagueId","==",leagueId));
+  const snap = await getDocs(q);
+
+  const teams=[];
+  snap.forEach(d=>teams.push({id:d.id,...d.data()}));
+  teams.sort((a,b)=>b.points-a.points);
+
+  if (teams.length < 4) return alert("Need at least 4 teams");
+
+  // Qualifier 1
+  await addDoc(collection(db,"playoffs"),{
+    leagueId, round:"Q1",
+    teamAId:teams[0].id, teamAName:teams[0].teamName,
+    teamBId:teams[1].id, teamBName:teams[1].teamName,
+    status:"upcoming"
+  });
+
+  // Eliminator
+  await addDoc(collection(db,"playoffs"),{
+    leagueId, round:"ELIM",
+    teamAId:teams[2].id, teamAName:teams[2].teamName,
+    teamBId:teams[3].id, teamBName:teams[3].teamName,
+    status:"upcoming"
+  });
+
+  msg.innerText="✅ Playoffs Generated";
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#0b1220;color:white;padding:20px">
+
+<h2>🏆 Playoffs & Final</h2>
+<div id="list"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDJie-ZFkaSjxAck7ohpegafgTyy6e-2AY",
+  authDomain: "sunilesports-ff-4f4ad.firebaseapp.com",
+  projectId: "sunilesports-ff-4f4ad"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const snap = await getDocs(collection(db,"playoffs"));
+let html="";
+snap.forEach(d=>{
+  const p=d.data();
+  html+=`
+    <div style="border:1px solid gray;padding:10px;margin:10px">
+      <b>${p.round}</b><br>
+      ${p.teamAName} vs ${p.teamBName}<br>
+      Status: ${p.status}
+    </div>
+  `;
+});
+list.innerHTML=html;
+</script>
+
+</body>
+</html>

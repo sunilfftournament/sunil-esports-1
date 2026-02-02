@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#0b1220;color:white;padding:20px">
+
+<h2>Available Matches</h2>
+<div id="list"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDJie-ZFkaSjxAck7ohpegafgTyy6e-2AY",
+  authDomain: "sunilesports-ff-4f4ad.firebaseapp.com",
+  projectId: "sunilesports-ff-4f4ad"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+onAuthStateChanged(auth, async user => {
+  if (!user) location.href = "index.html";
+
+  const snap = await getDocs(collection(db, "matches"));
+  let html = "";
+
+  snap.forEach(d => {
+    const m = d.data();
+    html += `
+      <div style="border:1px solid gray;padding:10px;margin:10px">
+        <b>${m.title}</b><br>
+        Mode: ${m.mode}<br>
+        Entry: ₹${m.entryFee}<br>
+        Time: ${m.time}<br>
+        <button onclick="join('${d.id}',${m.entryFee})">Join</button>
+      </div>
+    `;
+  });
+
+  list.innerHTML = html;
+});
+
+window.join = (id, fee) => {
+  location.href = "join.html?match=" + id;
+};
+</script>
+
+</body>
+</html>

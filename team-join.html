@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#0b1220;color:white;padding:20px">
+
+<h2>➕ Join Team</h2>
+
+<input id="teamId" placeholder="Team ID"><br><br>
+<button onclick="join()">Join</button>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  updateDoc,
+  arrayUnion
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDJie-ZFkaSjxAck7ohpegafgTyy6e-2AY",
+  authDomain: "sunilesports-ff-4f4ad.firebaseapp.com",
+  projectId: "sunilesports-ff-4f4ad"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.join = async () => {
+  const teamId = document.getElementById("teamId").value;
+  const user = auth.currentUser;
+
+  await updateDoc(doc(db, "teams", teamId), {
+    players: arrayUnion(user.uid)
+  });
+
+  alert("Joined team successfully");
+};
+</script>
+
+</body>
+</html>

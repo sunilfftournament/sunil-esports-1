@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#0b1220;color:white;padding:20px">
+
+<h2>📊 Points Table</h2>
+
+<table border="1" cellpadding="8">
+<thead>
+<tr>
+  <th>Rank</th>
+  <th>Team</th>
+  <th>Played</th>
+  <th>Wins</th>
+  <th>Loss</th>
+  <th>Points</th>
+</tr>
+</thead>
+<tbody id="rows"></tbody>
+</table>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDJie-ZFkaSjxAck7ohpegafgTyy6e-2AY",
+  authDomain: "sunilesports-ff-4f4ad.firebaseapp.com",
+  projectId: "sunilesports-ff-4f4ad"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const leagueId = new URLSearchParams(location.search).get("league");
+
+const q = query(collection(db, "teams"), where("leagueId", "==", leagueId));
+const snap = await getDocs(q);
+
+const teams = [];
+snap.forEach(d => teams.push(d.data()));
+
+teams.sort((a,b) => b.points - a.points);
+
+let html = "";
+teams.forEach((t,i) => {
+  html += `
+    <tr>
+      <td>${i+1}</td>
+      <td>${t.teamName}</td>
+      <td>${t.played}</td>
+      <td>${t.wins}</td>
+      <td>${t.losses}</td>
+      <td>${t.points}</td>
+    </tr>
+  `;
+});
+
+document.getElementById("rows").innerHTML = html;
+</script>
+
+</body>
+</html>

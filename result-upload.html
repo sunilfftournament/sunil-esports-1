@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Upload Match Result</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body style="background:#0b1220;color:white;padding:20px">
+
+<h2>🏁 Upload Match Result</h2>
+
+<label>Select Match</label><br>
+<select id="match"></select><br><br>
+
+<label>Winner</label><br>
+<select id="winner">
+  <option value="A">Team A</option>
+  <option value="B">Team B</option>
+  <option value="draw">Draw</option>
+</select><br><br>
+
+<button onclick="submit()">Submit Result</button>
+
+<p id="msg"></p>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  updateDoc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDJie-ZFkaSjxAck7ohpegafgTyy6e-2AY",
+  authDomain: "sunilesports-ff-4f4ad.firebaseapp.com",
+  projectId: "sunilesports-ff-4f4ad"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* 🔐 ROLE CHECK */
+onAuthStateChanged(auth, async (user) => {
+  if (!user) location.href = "index.html";
+
+  const snap = await getDoc(doc(db, "users", user.uid));
+  const role = snap.data().role;
+
+  if (role !== "admin" && role !== "staff") {
+    alert("Access denied");
+    location.href = "dashboard.html";
+  }
+
+  loadMatches();
+});
+
+/* Load matches */
+async function loadMatches() {
+  const snap = await getDocs(collection(db, "matches"));
+  let opt = "";
+  snap.forEach(d => {
+    const m = d.data();
+    if (m.status !== "done") {
+      opt += `<option value="${d.id}">
+        ${m.teamAName} vs ${m.teamBName}
+      </option>`;
+    }
+  });
+  document.getElementById("match").innerHTML = opt;
+}
+
+/* 🧮 SUBMIT RESULT */
+window.submit = async () => {
+  const matchId = match.value;
+  const win = winner.value;
+
+  const mref = doc(db, "matches", matchId);
+  const msnap = await getDoc(mref);
+  const m = msnap.data();
+
+  // get league points rule
+  const lsnap = await getDoc(doc(db, "leagues", m.leagueId));
+  const rule = lsnap.data().pointsRule;
+
+  const teamA = doc(db, "teams", m.teamAId);
+  const teamB = doc(db, "teams", m.teamBId);
+
+  if (win === "A") {
+    await updateDoc(teamA, {
+      played: m => m + 1,
+      wins: m => m + 1,
+      points: m => m + rule.win
+    });
+    await updateDoc(teamB, {
+      played: m => m + 1,
+      losses: m => m + 1,
+      points: m => m + rule.loss
+    });
+  }
+
+  if (win === "B") {
+    await updateDoc(teamB, {
+      played: m => m + 1,
+      wins: m => m + 1,
+      points: m => m + rule.win
+    });
+    await updateDoc(teamA, {
+      played: m => m + 1,
+      losses: m => m + 1,
+      points: m => m + rule.loss
+    });
+  }
+
+  if (win === "draw") {
+    await updateDoc(teamA, {
+      played: m => m + 1,
+      points: m => m + rule.draw
+    });
+    await updateDoc(teamB, {
+      played: m => m + 1,
+      points: m => m + rule.draw
+    });
+  }
+
+  await updateDoc(mref, {
+    status: "done",
+    result: win
+  });
+
+  document.getElementById("msg").innerText = "✅ Result updated";
+};
+</script>
+
+</body>
+</html>

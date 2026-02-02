@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#0b1220;color:white;padding:20px">
+
+<h2>👥 Create Team</h2>
+
+<input id="teamName" placeholder="Team Name"><br><br>
+
+<button onclick="create()">Create Team</button>
+
+<p id="msg"></p>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  serverTimestamp,
+  query,
+  where,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDJie-ZFkaSjxAck7ohpegafgTyy6e-2AY",
+  authDomain: "sunilesports-ff-4f4ad.firebaseapp.com",
+  projectId: "sunilesports-ff-4f4ad"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const leagueId = new URLSearchParams(location.search).get("league");
+
+window.create = async () => {
+  const name = document.getElementById("teamName").value;
+  const user = auth.currentUser;
+
+  if (!name) return alert("Team name required");
+
+  // 🔢 team limit check
+  const q = query(collection(db, "teams"), where("leagueId", "==", leagueId));
+  const snap = await getDocs(q);
+
+  if (snap.size >= 100) {
+    alert("Team limit reached");
+    return;
+  }
+
+  await addDoc(collection(db, "teams"), {
+    leagueId,
+    teamName: name,
+    captainUid: user.uid,
+    players: [user.uid],
+    played: 0,
+    wins: 0,
+    losses: 0,
+    points: 0,
+    createdAt: serverTimestamp()
+  });
+
+  document.getElementById("msg").innerText = "✅ Team Created Successfully";
+};
+</script>
+
+</body>
+</html>

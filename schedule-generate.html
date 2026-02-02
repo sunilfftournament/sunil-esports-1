@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generate Match Schedule</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body style="background:#0b1220;color:white;padding:20px">
+
+<h2>📅 Auto Match Schedule</h2>
+
+<label>Select League</label><br>
+<select id="league"></select><br><br>
+
+<label>Match Date</label><br>
+<input type="date" id="date"><br><br>
+
+<label>Match Time</label><br>
+<input type="time" id="time"><br><br>
+
+<button onclick="generate()">Generate Schedule</button>
+
+<p id="msg"></p>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+  query,
+  where,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDJie-ZFkaSjxAck7ohpegafgTyy6e-2AY",
+  authDomain: "sunilesports-ff-4f4ad.firebaseapp.com",
+  projectId: "sunilesports-ff-4f4ad"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* 🔐 ROLE CHECK */
+onAuthStateChanged(auth, async (user) => {
+  if (!user) location.href = "index.html";
+
+  const snap = await getDoc(doc(db, "users", user.uid));
+  const role = snap.data().role;
+
+  if (role !== "admin" && role !== "staff") {
+    alert("Access denied");
+    location.href = "dashboard.html";
+  }
+
+  loadLeagues();
+});
+
+/* Load leagues */
+async function loadLeagues() {
+  const snap = await getDocs(collection(db, "leagues"));
+  let opt = "";
+  snap.forEach(d => {
+    opt += `<option value="${d.id}">${d.data().name}</option>`;
+  });
+  document.getElementById("league").innerHTML = opt;
+}
+
+/* 🧠 AUTO GENERATE */
+window.generate = async () => {
+  const leagueId = league.value;
+  const date = document.getElementById("date").value;
+  const time = document.getElementById("time").value;
+
+  if (!date || !time) {
+    alert("Date & time required");
+    return;
+  }
+
+  const q = query(collection(db, "teams"), where("leagueId", "==", leagueId));
+  const snap = await getDocs(q);
+
+  const teams = [];
+  snap.forEach(d => teams.push({ id: d.id, name: d.data().teamName }));
+
+  if (teams.length < 2) {
+    alert("Not enough teams");
+    return;
+  }
+
+  // Round Robin logic
+  for (let i = 0; i < teams.length; i++) {
+    for (let j = i + 1; j < teams.length; j++) {
+      await addDoc(collection(db, "matches"), {
+        leagueId,
+        teamAId: teams[i].id,
+        teamAName: teams[i].name,
+        teamBId: teams[j].id,
+        teamBName: teams[j].name,
+        date,
+        time,
+        status: "upcoming",
+        result: "pending"
+      });
+    }
+  }
+
+  document.getElementById("msg").innerText =
+    "✅ Schedule Generated Successfully";
+};
+</script>
+
+</body>
+</html>

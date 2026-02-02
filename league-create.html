@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Create CS League</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body style="background:#0b1220;color:white;padding:20px;font-family:sans-serif">
+
+<h2>🏆 Create Clash Squad League</h2>
+
+<input id="name" placeholder="League Name"><br><br>
+
+<label>Total Teams</label><br>
+<select id="maxTeams">
+  <option value="20">20 Teams</option>
+  <option value="50">50 Teams</option>
+  <option value="100">100 Teams</option>
+</select><br><br>
+
+<input id="fee" placeholder="Entry Fee per Team ₹"><br><br>
+
+<label>Match Type</label><br>
+<select id="type">
+  <option value="online">Online</option>
+  <option value="offline">Offline</option>
+</select><br><br>
+
+<label>Start Date</label><br>
+<input type="date" id="startDate"><br><br>
+
+<label>Start Time</label><br>
+<input type="time" id="startTime"><br><br>
+
+<h3>Points System</h3>
+<input id="win" placeholder="Win Points (eg 2)"><br><br>
+<input id="loss" placeholder="Loss Points (eg 0)"><br><br>
+<input id="draw" placeholder="Draw Points (eg 1)"><br><br>
+
+<button onclick="createLeague()">Create League</button>
+
+<p id="msg"></p>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  serverTimestamp,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDJie-ZFkaSjxAck7ohpegafgTyy6e-2AY",
+  authDomain: "sunilesports-ff-4f4ad.firebaseapp.com",
+  projectId: "sunilesports-ff-4f4ad"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* 🔐 ROLE CHECK */
+onAuthStateChanged(auth, async (user) => {
+  if (!user) location.href = "index.html";
+
+  const snap = await getDoc(doc(db, "users", user.uid));
+  const role = snap.data().role;
+
+  if (role !== "admin" && role !== "staff") {
+    alert("Access denied");
+    location.href = "dashboard.html";
+  }
+});
+
+/* 🏆 CREATE LEAGUE */
+window.createLeague = async () => {
+  const name = document.getElementById("name").value;
+  const maxTeams = Number(document.getElementById("maxTeams").value);
+  const fee = Number(document.getElementById("fee").value);
+  const type = document.getElementById("type").value;
+  const startDate = document.getElementById("startDate").value;
+  const startTime = document.getElementById("startTime").value;
+
+  const win = Number(document.getElementById("win").value);
+  const loss = Number(document.getElementById("loss").value);
+  const draw = Number(document.getElementById("draw").value);
+
+  if (!name || !fee || !startDate || !startTime) {
+    alert("All fields required");
+    return;
+  }
+
+  await addDoc(collection(db, "leagues"), {
+    name,
+    mode: "clash_squad",
+    maxTeams,
+    entryFee: fee,
+    matchType: type,
+    startDate,
+    startTime,
+    status: "upcoming",
+    pointsRule: {
+      win,
+      loss,
+      draw
+    },
+    createdAt: serverTimestamp()
+  });
+
+  document.getElementById("msg").innerText = "✅ League Created Successfully";
+};
+</script>
+
+</body>
+</html>

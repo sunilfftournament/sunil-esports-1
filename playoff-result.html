@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#0b1220;color:white;padding:20px">
+
+<h2>🏆 Playoff Result Upload</h2>
+
+<select id="match"></select><br><br>
+<select id="winner">
+  <option value="A">Team A</option>
+  <option value="B">Team B</option>
+</select><br><br>
+
+<button onclick="submit()">Submit</button>
+<p id="msg"></p>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import {
+  getFirestore, collection, getDocs, updateDoc, doc
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDJie-ZFkaSjxAck7ohpegafgTyy6e-2AY",
+  authDomain: "sunilesports-ff-4f4ad.firebaseapp.com",
+  projectId: "sunilesports-ff-4f4ad"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let playoffs = [];
+
+onAuthStateChanged(auth, async user=>{
+  if (!user) location.href="index.html";
+  const snap = await getDocs(collection(db,"playoffs"));
+  let opt="";
+  snap.forEach(d=>{
+    playoffs.push({id:d.id,...d.data()});
+    if (d.data().status!=="done")
+      opt+=`<option value="${d.id}">${d.data().round} : ${d.data().teamAName} vs ${d.data().teamBName}</option>`;
+  });
+  match.innerHTML=opt;
+});
+
+window.submit = async ()=>{
+  const id = match.value;
+  const win = winner.value;
+  const m = playoffs.find(p=>p.id===id);
+
+  const winnerId = win==="A"?m.teamAId:m.teamBId;
+  const loserId  = win==="A"?m.teamBId:m.teamAId;
+
+  await updateDoc(doc(db,"playoffs",id),{
+    status:"done",
+    winnerTeamId:winnerId
+  });
+
+  // auto create next round
+  if (m.round==="Q1") {
+    window.q1Winner = winnerId;
+    window.q1Loser  = loserId;
+  }
+
+  if (m.round==="ELIM") {
+    await addDoc(collection(db,"playoffs"),{
+      leagueId:m.leagueId, round:"Q2",
+      teamAId:window.q1Loser,
+      teamAName:m.teamAName,
+      teamBId:winnerId,
+      teamBName:m.teamBName,
+      status:"upcoming"
+    });
+  }
+
+  if (m.round==="Q2") {
+    await addDoc(collection(db,"playoffs"),{
+      leagueId:m.leagueId, round:"FINAL",
+      teamAId:window.q1Winner,
+      teamAName:"Q1 Winner",
+      teamBId:winnerId,
+      teamBName:"Q2 Winner",
+      status:"upcoming"
+    });
+  }
+
+  msg.innerText="✅ Result Updated";
+};
+</script>
+</body>
+</html>
