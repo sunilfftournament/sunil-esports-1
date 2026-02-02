@@ -1,103 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Sunil FF Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
-  <style>
-    body {
-      background:#0b1220;
-      color:#fff;
-      font-family: Arial;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-    }
-    .box {
-      background:#111827;
-      padding:20px;
-      border-radius:10px;
-      width:300px;
-    }
-    input,button {
-      width:100%;
-      padding:10px;
-      margin-top:10px;
-      border-radius:6px;
-      border:none;
-    }
-    button {
-      background:#22c55e;
-      font-weight:bold;
-      cursor:pointer;
-    }
-  </style>
 </head>
 
-<body>
+<body style="background:#0b1220;color:white;text-align:center;padding:40px">
 
-<div class="box">
-  <h3>Sunil FF Login</h3>
+  <h2>Login with Mobile</h2>
 
-  <input type="text" id="phone" placeholder="+91XXXXXXXXXX">
-  <button onclick="sendOTP()">Send OTP</button>
+  <input id="phone" placeholder="+91XXXXXXXXXX"><br><br>
+  <button onclick="sendOTP()">Send OTP</button><br><br>
 
-  <div id="otpBox" style="display:none">
-    <input type="text" id="otp" placeholder="Enter OTP">
-    <button onclick="verifyOTP()">Verify OTP</button>
-  </div>
+  <input id="otp" placeholder="Enter OTP"><br><br>
+  <button onclick="verifyOTP()">Verify OTP</button>
 
-  <div id="recaptcha"></div>
-</div>
+  <div id="recaptcha-container"></div>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDJie-ZFkaSjxAck7ohpegafgTyy6e-2AY",
-    authDomain: "sunilesports-ff-4f4ad.firebaseapp.com",
-    projectId: "sunilesports-ff-4f4ad",
-    storageBucket: "sunilesports-ff-4f4ad.appspot.com",
-    messagingSenderId: "929173626716",
-    appId: "1:929173626716:web:15b971ba5ab9197da26b99"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-
-  window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
-    'recaptcha',
-    { size: 'invisible' }
-  );
-
-  function sendOTP() {
-    const phone = document.getElementById("phone").value;
-    auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
-      .then((confirmationResult) => {
-        window.confirmationResult = confirmationResult;
-        document.getElementById("otpBox").style.display = "block";
-        alert("OTP sent");
-      })
-      .catch((error) => alert(error.message));
-  }
-
-  function verifyOTP() {
-    const otp = document.getElementById("otp").value;
-    confirmationResult.confirm(otp)
-      .then((result) => {
-        localStorage.setItem("user", JSON.stringify({
-          phoneNumber: result.user.phoneNumber,
-          uid: result.user.uid
-        }));
-        window.location.href = "dashboard.html";
-      })
-      .catch(() => alert("Wrong OTP"));
-  }
-</script>
-
+  <script src="firebase.js" type="module"></script>
 </body>
 </html>

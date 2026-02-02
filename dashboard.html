@@ -1,57 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Sunil FF Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body{margin:0;font-family:Arial;background:#0b1220;color:#fff}
-.header{padding:15px;background:#111827;display:flex;justify-content:space-between}
-.container{padding:15px}
-.card{background:#111827;padding:15px;border-radius:10px;margin-bottom:15px}
-.menu{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.menu div{background:#1f2933;padding:15px;border-radius:10px;text-align:center;cursor:pointer}
-.menu div:hover{background:#22c55e;color:#000}
-</style>
+  <title>Sunil FF Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
-<body>
+<body style="background:#0b1220;color:white;padding:20px">
 
-<div class="header">
-  <div>
-    <b>Sunil FF Tournament</b><br>
-    <span id="userPhone"></span>
-  </div>
-  <div onclick="logout()">Logout</div>
+<!-- 🔝 TITLE (2 TAP SECRET) -->
+<h2 id="secretTitle">Sunil FF Tournament</h2>
+
+<p id="user"></p>
+
+<!-- WALLET -->
+<div style="background:#111827;padding:15px;border-radius:10px;margin-bottom:15px">
+  <h3>Wallet</h3>
+  <p>Balance: ₹<span id="bal">0</span></p>
+  <button onclick="location.href='wallet.html'">Add Money</button>
+  <br><br>
+  <button onclick="location.href='withdraw.html'">Withdraw</button>
 </div>
 
-<div class="container">
-  <div class="card">Wallet: ₹0</div>
-  <div class="card">No live match</div>
-
-  <div class="menu">
-    <div>Matches</div>
-    <div>History</div>
-    <div>Add Money</div>
-    <div>Withdraw</div>
-    <div>Settings</div>
-    <div onclick="logout()">Logout</div>
-  </div>
+<!-- HISTORY -->
+<div style="background:#111827;padding:15px;border-radius:10px;margin-bottom:15px">
+  <h3>History</h3>
+  <div id="history"></div>
 </div>
+
+<button onclick="logout()">Logout</button>
 
 <script>
-  const user = JSON.parse(localStorage.getItem("user"));
-  if(!user){
-    window.location.href="index.html";
-  } else {
-    document.getElementById("userPhone").innerText = user.phoneNumber;
-  }
+let user = JSON.parse(localStorage.getItem("user"));
+if (!user) location.href = "index.html";
 
-  function logout(){
-    localStorage.removeItem("user");
-    window.location.href="index.html";
+user.balance = user.balance || 0;
+user.history = user.history || [];
+localStorage.setItem("user", JSON.stringify(user));
+
+document.getElementById("user").innerText = "Logged in: " + user.phone;
+document.getElementById("bal").innerText = user.balance;
+
+// history
+let h = "";
+user.history.forEach(i => h += `<p>${i}</p>`);
+document.getElementById("history").innerHTML = h || "No history";
+
+// logout
+function logout() {
+  localStorage.removeItem("user");
+  location.href = "index.html";
+}
+
+/* 🔐 SECRET ADMIN ENTRY */
+let tap = 0;
+document.getElementById("secretTitle").onclick = () => {
+  tap++;
+  if (tap === 2) {
+    tap = 0;
+    const pass = prompt("Enter Admin Password");
+    if (pass === "125991") {
+      window.open("admin.html", "_blank");
+    } else {
+      alert("Wrong password");
+    }
   }
+};
 </script>
 
 </body>
